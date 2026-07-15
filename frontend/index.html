@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EHR Media Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#1c2a32",
+            mist: "#e8eef1",
+            foam: "#f7fafb",
+            tide: "#0f6b7a",
+            tideDark: "#0a4f5a",
+            sand: "#c4a35a",
+            alert: "#9b3a3a",
+          },
+          fontFamily: {
+            display: ['"Source Serif 4"', "Georgia", "serif"],
+            sans: ['"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background:
+        radial-gradient(1200px 500px at 10% -10%, rgba(15, 107, 122, 0.12), transparent 60%),
+        radial-gradient(900px 400px at 100% 0%, rgba(196, 163, 90, 0.14), transparent 55%),
+        linear-gradient(180deg, #f7fafb 0%, #eef4f6 100%);
+      min-height: 100vh;
+    }
+    .drawer-enter { transform: translateX(100%); }
+    .drawer-open { transform: translateX(0); transition: transform 220ms ease; }
+    .score-bar { height: 4px; border-radius: 999px; background: #d5dee3; overflow: hidden; }
+    .score-bar > span { display: block; height: 100%; background: #0f6b7a; }
+    :focus-visible { outline: 2px solid #0f6b7a; outline-offset: 2px; }
+  </style>
+</head>
+<body class="font-sans text-ink antialiased">
+  <a href="#results" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-3 focus:py-2">Skip to results</a>
+
+  <header class="border-b border-black/5 bg-white/70 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-end justify-between gap-4 px-4 py-6 sm:px-6">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-tide">Onyeone · Clinical Media</p>
+        <h1 class="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">EHR Media Intelligence</h1>
+        <p class="mt-1 max-w-xl text-sm text-ink/70">Search unstructured patient media — labs, imaging notes, discharge summaries — normalized to FHIR R4 with AI summaries for orientation only.</p>
+      </div>
+      <div id="health-pill" class="hidden rounded border border-tide/20 bg-tide/5 px-3 py-1 text-xs font-medium text-tide sm:block" aria-live="polite">Checking…</div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <section aria-labelledby="search-heading" class="rounded-sm border border-black/5 bg-white/80 p-4 shadow-sm sm:p-6">
+      <h2 id="search-heading" class="sr-only">Search patient media</h2>
+      <form id="search-form" class="flex flex-col gap-4" role="search">
+        <label for="query" class="text-sm font-medium text-ink/80">Clinical query</label>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <input
+            id="query"
+            name="query"
+            type="search"
+            autocomplete="off"
+            placeholder="e.g. elevated BNP heart failure, lung nodule staging, appendicitis ultrasound"
+            class="w-full border border-ink/15 bg-foam px-4 py-3 text-base shadow-inner placeholder:text-ink/35"
+            aria-describedby="search-hint"
+            required
+          />
+          <button type="submit" id="search-btn" class="bg-tide px-5 py-3 text-sm font-semibold text-white transition hover:bg-tideDark disabled:opacity-60">
+            Search
+          </button>
+        </div>
+        <p id="search-hint" class="text-xs text-ink/55">Press Enter to search. Use arrow keys on results, Enter to open a patient.</p>
+
+        <div class="grid gap-3 sm:grid-cols-3">
+          <div>
+            <label for="resource-type" class="mb-1 block text-xs font-medium uppercase tracking-wide text-ink/60">Resource type</label>
+            <select id="resource-type" class="w-full border border-ink/15 bg-white px-3 py-2 text-sm">
+              <option value="">All types</option>
+              <option value="DocumentReference">DocumentReference</option>
+              <option value="DiagnosticReport">DiagnosticReport</option>
+              <option value="PatientSummary">PatientSummary</option>
+            </select>
+          </div>
+          <div>
+            <label for="date-from" class="mb-1 block text-xs font-medium uppercase tracking-wide text-ink/60">From</label>
+            <input id="date-from" type="date" class="w-full border border-ink/15 bg-white px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label for="date-to" class="mb-1 block text-xs font-medium uppercase tracking-wide text-ink/60">To</label>
+            <input id="date-to" type="date" class="w-full border border-ink/15 bg-white px-3 py-2 text-sm" />
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="mt-6" aria-live="polite">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h2 id="results-heading" class="font-display text-xl font-semibold">Results</h2>
+        <p id="meta" class="text-xs text-ink/55"></p>
+      </div>
+
+      <div id="loading" class="hidden border border-dashed border-tide/30 bg-tide/5 px-4 py-8 text-center text-sm text-tide" role="status">
+        Searching clinical corpus…
+      </div>
+
+      <div id="empty" class="border border-dashed border-ink/15 bg-white/60 px-4 py-10 text-center">
+        <p class="font-medium">No search yet</p>
+        <p class="mt-1 text-sm text-ink/60">Try “pulmonary nodule” or “CHF exacerbation labs”.</p>
+      </div>
+
+      <ul id="results" class="space-y-3" role="listbox" aria-label="Search results" tabindex="0"></ul>
+    </section>
+  </main>
+
+  <!-- Patient detail drawer -->
+  <div id="overlay" class="fixed inset-0 z-40 hidden bg-ink/40" aria-hidden="true"></div>
+  <aside
+    id="drawer"
+    class="drawer-enter fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col border-l border-ink/10 bg-white shadow-xl"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="drawer-title"
+    hidden
+  >
+    <div class="flex items-start justify-between gap-3 border-b border-ink/10 px-5 py-4">
+      <div>
+        <p class="text-xs uppercase tracking-wide text-ink/50">Patient</p>
+        <h2 id="drawer-title" class="font-display text-2xl font-semibold">—</h2>
+        <p id="drawer-mrn" class="text-sm text-ink/60"></p>
+      </div>
+      <button id="drawer-close" type="button" class="border border-ink/15 px-3 py-1 text-sm" aria-label="Close patient detail">Close</button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-5 py-4">
+      <p id="drawer-disclaimer" class="mb-4 border-l-2 border-sand bg-sand/10 px-3 py-2 text-xs text-ink/80"></p>
+      <h3 class="text-xs font-semibold uppercase tracking-wide text-ink/50">AI clinical summary</h3>
+      <pre id="drawer-summary" class="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-ink"></pre>
+      <h3 class="mt-6 text-xs font-semibold uppercase tracking-wide text-ink/50">Linked FHIR resources</h3>
+      <ul id="drawer-resources" class="mt-2 space-y-2 text-sm"></ul>
+    </div>
+  </aside>
+
+  <script src="/static/app.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+mrn,first_name,last_name,dob,gender,record_id,record_type,encounter_id,recorded_at,title,content
+MRN-10021,Maria,Gonzalez,03/12/1984,F,REC-CSV-001,lab_result,ENC-7843,2024-10-20,HbA1c,"HbA1c 7.8%. Suboptimal glycemic control; intensify diabetes education and consider GLP-1 adjunct."
+10034,James,Okoye,1971-08-29,Male,REC-CSV-002,scanned_note,ENC-9013,01/19/2025,Oncology referral note,"Patient informed of RUL nodule. Discussed smoking cessation. PET-CT ordered. Biopsy pending IR availability."
+MRN-10055,Aisha,Patel,12/01/1990,female,REC-CSV-003,lab_result,ENC-5521,2024-09-14T12:05:00Z,CBC pre-op,"WBC 14.1 neutrophilia, CRP 42. Pre-operative labs otherwise within expected range for acute appendicitis."
+MRN-10088,Robert,Chen,05-04-1958,M,REC-CSV-004,imaging_note,ENC-3301,02/01/2025,CXR portable,"Right lower lobe opacity with air bronchograms. Compatible with community-acquired pneumonia. Recommend clinical correlation."
+MRN-10099,Elena,Vasquez,1988/06/15,F,REC-CSV-005,discharge_summary,ENC-4100,2025-03-10,Postpartum discharge,"Uncomplicated SVD at 39w2d. Mother and neonate stable. Follow OB in 6 weeks. No wound concerns."
+MRN-10099,Elena,Vasquez,1988-06-15,female,REC-CSV-005,discharge_summary,ENC-4100,2025-03-10T16:00:00Z,Postpartum discharge,"Uncomplicated SVD at 39w2d. Mother and neonate stable. Follow OB in 6 weeks. No wound concerns."
+,Chris,Nguyen,1995-01-22,other,REC-CSV-006,scanned_note,ENC-2200,2024-12-05,Allergy clinic note,"Seasonal allergic rhinitis. Skin testing positive for birch and ragweed. Started nasal corticosteroid. Epinephrine autoinjector not indicated."
+MRN-10110,Chris,Nguyen,22-01-1995,X,REC-CSV-007,lab_pdf,ENC-2201,2024-12-06,IgE total,"Total IgE 312 IU/mL elevated. Consistent with atopic phenotype. No eosinophilia on concurrent CBC."
+MRN-10034,James,Okoye,29 Aug 1971,m,REC-CSV-008,diagnostic_report,ENC-9012,2025-01-20,PET-CT,"FDG-avid RUL nodule SUV 8.2 and ipsilateral mediastinal nodes. Staging favors operable disease pending mediastinal sampling."
+MRN-10055,Aisha,Patel,1990-12-01,F,REC-CSV-009,discharge_summary,ENC-5520,2024-09-16,Appendectomy discharge,"Laparoscopic appendectomy without complication. Pathology confirmed acute appendicitis. Wound clean. Return precautions reviewed."

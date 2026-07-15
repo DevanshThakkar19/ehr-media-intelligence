@@ -1,0 +1,56 @@
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage[margin=0.55in]{geometry}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+\hypersetup{colorlinks=true, urlcolor=black}
+\pagestyle{empty}
+\setlength{\parskip}{0.22em}
+\renewcommand{\section}[1]{%
+  \vspace{0.45em}\noindent{\bfseries #1}\\[-0.15em]
+  \noindent\rule{\textwidth}{0.35pt}\vspace{0.2em}%
+}
+
+\begin{document}
+
+\noindent
+{\LARGE\bfseries EHR Media Intelligence Platform}\\[0.08em]
+{\large Design Write-up}\\[0.2em]
+Devansh Thakkar \enspace$\cdot$\enspace AI Full-Stack Internship Assessment \enspace$\cdot$\enspace
+\href{https://github.com/DevanshThakkar19/ehr-media-intelligence}{github.com/DevanshThakkar19/ehr-media-intelligence}
+
+\section{Problem framing}
+Clinical media in Epic-like environments---labs, imaging notes, discharge summaries---rarely sits in clean structured fields. The failure mode is not ``missing AI''; it is expensive human scanning across inconsistent exports. This system treats that as a \emph{data pipeline with a thin retrieval product}: ingest synthetic heterogeneous media, normalize to a testable intermediate representation (IR), emit validated HL7 FHIR~R4 Bundles, generate orientation-only summaries, and expose sub-second semantic search in a clinician UI.
+
+\section{Architecture}
+\textbf{Ingestion $\rightarrow$ IR $\rightarrow$ FHIR $\rightarrow$ Summary $\rightarrow$ Index $\rightarrow$ UI.}
+Dirty CSV/JSON/plaintext never maps straight into FHIR; cleaning lives in Pydantic models with an audit trail. FHIR~R4 emits \texttt{Patient}, \texttt{DocumentReference}, and \texttt{DiagnosticReport} as \texttt{Bundle.type=collection} (read/search, not write-back). Summaries cache on \texttt{MRN + bundle hash}. Search uses \texttt{all-MiniLM-L6-v2} + ChromaDB with resource-type and date filters. UI is Tailwind + vanilla JS over FastAPI---minimal setup, explicit API contract.
+
+\section{Tradeoffs and why}
+\begin{itemize}
+\setlength{\itemsep}{0.05em}\setlength{\parsep}{0pt}\setlength{\topsep}{0.1em}
+  \item \textbf{IR before FHIR.} Direct messy-to-FHIR mapping hides quality defects under coding systems. One hop buys unit-testable MRN/DOB/gender/date normalization, dedupe, and conservative identity resolution (fill missing MRN on name+DOB; never merge conflicting MRNs).
+  \item \textbf{Collection Bundles, not transactions.} Assessment scope is retrieval, not Epic write-back---collection is the correct carrier for a patient's media set.
+  \item \textbf{SQLite + Chroma.} \texttt{pip install} + \texttt{uvicorn} for reviewers; $\sim$50 records do not justify a service mesh.
+  \item \textbf{Mock summarizer by default.} Live OpenAI/Anthropic are config flips; offline review must not depend on vendor keys.
+  \item \textbf{Narrative in \texttt{description}/\texttt{conclusion}.} Searchable text over opaque Attachments at this size; production would still retain Attachments as legal source of truth.
+  \item \textbf{Vanilla JS over React.} Matches the brief. A production console would still use a design-system SPA with authZ and audit.
+\end{itemize}
+
+\section{FHIR / clinical research}
+FHIR~R4 reference integrity (\texttt{subject}, \texttt{encounter}); \texttt{collection} vs.\ \texttt{transaction}; LOINC document-type codes for discharge, imaging, lab, and progress notes; administrative gender vs.\ clinical sex. Summaries are labeled \textbf{orientation only}---not a decision aid---and must not invent diagnoses absent from source media.
+
+\section{Validating AI summary quality}
+\begin{enumerate}
+\setlength{\itemsep}{0.05em}\setlength{\parsep}{0pt}\setlength{\topsep}{0.1em}
+  \item \textbf{Contract tests:} structured sections, $\le$200 words, mandatory disclaimer, cache hit on identical \texttt{MRN + bundle hash}.
+  \item \textbf{Faithfulness spot-checks} (CHF/BNP, nodule, appendicitis US, CAP, allergy): claims must appear in source text; temperature 0.2 + anti-fabrication prompt with a live key.
+  \item \textbf{Retrieval sanity:} ``elevated BNP failure'' ranks true media (e.g., BMP \& BNP) above twin FHIR projections and unrelated summaries.
+\end{enumerate}
+
+\section{What I would ship next}
+US Core + real \texttt{Encounter} resources; PDF/OCR ingest; automated faithfulness (claim $\leftrightarrow$ source-span); hybrid BM25+vector for MRN/accession exact match; AuthN/Z and immutable audit for a hospital VPC---the gap between a strong demo and something behind a BAA.
+
+\end{document}

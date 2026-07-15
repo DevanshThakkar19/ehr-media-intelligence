@@ -1,0 +1,19 @@
+PATIENT NOTE — Free text export
+================================
+MRN: mrn10021 | Name: Gonzalez, Maria | DOB: March 12, 1984 | Sex: Female
+Encounter: ENC-7844 | Date: 2024-10-28
+Type: progress_note
+Title: Cardiology follow-up
+Text: Stable compensated HFrEF on GDMT. BNP downtrending. Continues furosemide 40mg daily. Discussed diet and daily weights.
+
+---
+Patient ID: 10088 | Robert Chen | Born 4 May 1958 | Gender: Male
+Visit: ENC-3302 | Recorded 2025-02-05
+Kind: progress_note
+Heading: Pulmonary follow-up after CAP
+Body: Completing oral antibiotics. Residual cough improving. CXR cleared for outpatient repeat in 4 weeks if symptoms persist. No hemoptysis.
+
+---
+mrn: MRN-10110 / Chris Nguyen / DOB 1995-01-22 / gender O
+ENC-2202 | 2024-12-12 | allergy_note
+Allergen immunotherapy discussion; patient elects environmental controls only for now.
